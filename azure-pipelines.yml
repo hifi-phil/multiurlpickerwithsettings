@@ -13,12 +13,6 @@ steps:
   inputs:
     script: './build.cmd'
 
-- task: PublishBuildArtifacts@1
-  displayName: Publish packages artifact
-  inputs:
-    artifactName: 'packages'
-    pathToPublish: '$(Build.SourcesDirectory)/output'
-
 - task: NuGetCommand@2
   displayName: Push to internal feed
   inputs:
