@@ -1,0 +1,32 @@
+{
+  "$schema": "https://marketplace.umbraco.com/umbraco-marketplace-schema.json",
+  "AlternatePackageNames": [
+    "MultiUrlPickerWithSettings"
+  ],
+  "AuthorDetails": {
+    "Name": "Phil Whittaker",
+    "Description": "2x MVP, owner of HiFi",
+    "Contributors": []
+  },
+  "Category": "Editor Tools",
+  "DiscussionForumUrl": "",
+  "LicenseTypes": [ "MIT" ],
+  "IssueTrackerUrl": "https://github.com/hifi-phil/multiurlpickerwithsettings/issues",
+  "PackageType": "Package",
+  "PackagesByAuthor": [],
+  "RelatedPackages": [],
+  "Screenshots": [],
+  "Tags": [
+    "backoffice",
+    "block editor",
+    "editorial experience",
+    "property editor"
+  ],
+  "Title": "MultiUrlPickerWithSettings",
+  "VersionSpecificPackageIds": [
+    {
+      "UmbracoMajorVersion": 10,
+      "PackageId": "Our.Umbraco.Community.MultiUrlPickerWithSettings"
+    }
+  ]
+}
