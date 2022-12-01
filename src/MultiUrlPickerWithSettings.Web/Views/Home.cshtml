@@ -1,0 +1,22 @@
+﻿@using Umbraco.Cms.Web.Common.PublishedModels;
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<Content.Models.Home>
+@using ContentModels = Umbraco.Cms.Web.Common.PublishedModels;
+@{
+	Layout = null;
+}
+<div style="margin: 20px;">
+	<div>
+	@foreach(var url in Model.Links) {
+		var settings = url.Settings as Content.Models.LinkSettings;
+		if(settings != null) {
+			<a href="@url.Url" style="display: block; margin: 20px;">
+				<img style="width:20px; margin-right: 10px; position: relative; top: 5px" src="@settings.Icon.Url()" width="100px">
+				@url.Name
+			</a> 
+		}
+		else {
+			<a href="@url.Url" style="display: block; margin: 20px;">@url.Name</a> 
+		}
+	}
+</div>
+</div>
