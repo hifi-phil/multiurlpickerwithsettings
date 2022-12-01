@@ -7,6 +7,7 @@
   <ItemGroup>
 	<PackageReference Include="Microsoft.ICU.ICU4C.Runtime" Version="68.2.0.9" />
     <PackageReference Include="Umbraco.Cms" Version="10.3.2" />
+    <PackageReference Include="uSync" Version="10.3.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MultiUrlPickerWithSettings\MultiUrlPickerWithSettings.csproj" />
