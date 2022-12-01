@@ -25,7 +25,7 @@ class Build : NukeBuild
     ///   - Microsoft VisualStudio     https://nuke.build/visualstudio
     ///   - Microsoft VSCode           https://nuke.build/vscode
 
-    public static int Main () => Execute<Build>(x => x.Pack);
+    public static int Main () => Execute<Build>(x => x.Report);
 
     [Parameter("Configuration to build - Default is 'Debug' (local) or 'Release' (server)")]
     readonly Configuration Configuration = IsLocalBuild ? Configuration.Debug : Configuration.Release;
@@ -79,7 +79,7 @@ class Build : NukeBuild
 
 
     Target Report => _ => _
-        .Before(Compile)
+        .DependsOn(Pack)
         .Executes(() =>
         {
             Log.Information("NuGetPackageVersion:          {Value}", NerdbankVersioning.NuGetPackageVersion);
