@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using Nuke.Common;
 using Nuke.Common.CI;
+using Nuke.Common.CI.AzurePipelines;
 using Nuke.Common.Execution;
 using Nuke.Common.Git;
 using Nuke.Common.IO;
@@ -77,9 +78,15 @@ class Build : NukeBuild
                 .SetConfiguration(Configuration));
         });
 
+    Target UploadArtifacts => _ => _
+        .DependsOn(Pack)
+        .Executes(() =>
+        {
+            AzurePipelines.Instance?.UploadArtifacts("container", "drop", OutputDirectory);
+        });
 
     Target Report => _ => _
-        .DependsOn(Pack)
+        .DependsOn(UploadArtifacts)
         .Executes(() =>
         {
             Log.Information("NuGetPackageVersion:          {Value}", NerdbankVersioning.NuGetPackageVersion);
