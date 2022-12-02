@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
@@ -25,8 +25,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-	<PackageReference Include="Umbraco.Cms.Core" Version="10.3.2" />
-	<PackageReference Include="Umbraco.Cms.Web.Common" Version="10.3.2" />
+	<PackageReference Include="Umbraco.Cms.Core" Version="11.0.0" />
+	<PackageReference Include="Umbraco.Cms.Web.Common" Version="11.0.0" />
   </ItemGroup>
 	
 </Project>
