@@ -15,6 +15,7 @@
   <PropertyGroup>
 	  <PackageId>Our.Umbraco.Community.MultiUrlPickerWithSettings</PackageId>
 	  <PackageTags>umbraco plugin package umbraco-marketplace</PackageTags>
+    <PackageProjectUrl>https://github.com/hifi-phil/multiurlpickerwithsettings</PackageProjectUrl>
 	  <Copyright>Copyright 2022-present HiFi Ltd</Copyright>
 
 	  <Version>1.0.0</Version>
