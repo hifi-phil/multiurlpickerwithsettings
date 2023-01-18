@@ -9,7 +9,6 @@
     "Contributors": []
   },
   "Category": "Editor Tools",
-  "DiscussionForumUrl": "",
   "LicenseTypes": [ "Free" ],
   "IssueTrackerUrl": "https://github.com/hifi-phil/multiurlpickerwithsettings/issues",
   "PackageType": "Package",
@@ -26,6 +25,10 @@
   "VersionSpecificPackageIds": [
     {
       "UmbracoMajorVersion": 10,
+      "PackageId": "Our.Umbraco.Community.MultiUrlPickerWithSettings"
+    },
+    {
+      "UmbracoMajorVersion": 11,
       "PackageId": "Our.Umbraco.Community.MultiUrlPickerWithSettings"
     }
   ]
