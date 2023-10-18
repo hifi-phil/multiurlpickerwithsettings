@@ -4,6 +4,7 @@
 using Umbraco.Cms.Core.Logging;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Models.PublishedContent;
+using Umbraco.Cms.Core.PropertyEditors.DeliveryApi;
 using Umbraco.Cms.Core.PublishedCache;
 using Umbraco.Cms.Core.Routing;
 using Umbraco.Cms.Core.Serialization;
@@ -11,17 +12,23 @@ using Umbraco.Cms.Core.Web;
 using Umbraco.Extensions;
 using Newtonsoft.Json;
 using Umbraco.Cms.Core.Models.Blocks;
+using Umbraco.Cms.Core.Models.DeliveryApi;
+using Umbraco.Cms.Core.DeliveryApi;
+using static Umbraco.Cms.Core.Constants.HttpContext;
 
 namespace Umbraco.Cms.Core.PropertyEditors.ValueConverters;
 
-public class MultiUrlPickerWithSettingsValueConverter : PropertyValueConverterBase
+public class MultiUrlPickerWithSettingsValueConverter : PropertyValueConverterBase, IDeliveryApiPropertyValueConverter
 {
     private readonly IJsonSerializer _jsonSerializer;
     private readonly IProfilingLogger _proflog;
     private readonly IPublishedSnapshotAccessor _publishedSnapshotAccessor;
     private readonly IPublishedUrlProvider _publishedUrlProvider;
-    private readonly IUmbracoContextAccessor _umbracoContextAccessor;
     private readonly BlockEditorConverter _blockEditorConverter;
+    private readonly IApiContentNameProvider _apiContentNameProvider;
+    private readonly IApiMediaUrlProvider _apiMediaUrlProvider;
+    private readonly IApiContentRouteBuilder _apiContentRouteBuilder;
+    private readonly IApiElementBuilder _apiElementBuilder;
 
     public MultiUrlPickerWithSettingsValueConverter(
         IPublishedSnapshotAccessor publishedSnapshotAccessor,
@@ -29,24 +36,31 @@ public class MultiUrlPickerWithSettingsValueConverter : PropertyValueConverterBa
         IJsonSerializer jsonSerializer,
         IUmbracoContextAccessor umbracoContextAccessor,
         IPublishedUrlProvider publishedUrlProvider,
-        BlockEditorConverter blockEditorConverter)
+        BlockEditorConverter blockEditorConverter,
+        IApiContentNameProvider apiContentNameProvider,
+        IApiMediaUrlProvider apiMediaUrlProvider,
+        IApiContentRouteBuilder apiContentRouteBuilder,
+        IApiElementBuilder apiElementBuilder)
     {
         _publishedSnapshotAccessor = publishedSnapshotAccessor ??
                                      throw new ArgumentNullException(nameof(publishedSnapshotAccessor));
         _proflog = proflog ?? throw new ArgumentNullException(nameof(proflog));
         _jsonSerializer = jsonSerializer;
-        _umbracoContextAccessor = umbracoContextAccessor;
         _publishedUrlProvider = publishedUrlProvider;
         _blockEditorConverter = blockEditorConverter;
+        _apiContentNameProvider = apiContentNameProvider;
+        _apiMediaUrlProvider = apiMediaUrlProvider;
+        _apiContentRouteBuilder = apiContentRouteBuilder;
+        _apiElementBuilder = apiElementBuilder;
     }
 
     public override bool IsConverter(IPublishedPropertyType propertyType) =>
         propertyType.EditorAlias == "MultiUrlPickerWithSettings";
 
     public override Type GetPropertyValueType(IPublishedPropertyType propertyType) =>
-        propertyType.DataType.ConfigurationAs<MultiUrlPickerWithSettingsConfiguration>()!.MaxNumber == 1
-            ? typeof(LinkWithSettings)
-            : typeof(IEnumerable<LinkWithSettings>);
+           IsSingleUrlPicker(propertyType)
+               ? typeof(Link)
+               : typeof(IEnumerable<Link>);
 
     public override PropertyCacheLevel GetPropertyCacheLevel(IPublishedPropertyType propertyType) =>
         PropertyCacheLevel.Snapshot;
@@ -141,6 +155,77 @@ public class MultiUrlPickerWithSettingsValueConverter : PropertyValueConverterBa
             return null;
         }
     }
+
+    public PropertyCacheLevel GetDeliveryApiPropertyCacheLevel(IPublishedPropertyType propertyType) => PropertyCacheLevel.Elements;
+
+    public Type GetDeliveryApiPropertyValueType(IPublishedPropertyType propertyType) => typeof(IEnumerable<ApiLink>);
+
+    public object? ConvertIntermediateToDeliveryApiObject(IPublishedElement owner, IPublishedPropertyType propertyType, PropertyCacheLevel referenceCacheLevel, object? inter, bool preview, bool expanding)
+    {
+        IEnumerable<ApiLink> DefaultValue() => Array.Empty<ApiLink>();
+
+        if (inter is not string value || value.IsNullOrWhiteSpace())
+        {
+            return DefaultValue();
+        }
+
+        MultiUrlPickerWithSettingsValueEditor.LinkDto[]? dtos = ParseLinkDtos(value)?.ToArray();
+        if (dtos == null || dtos.Any() == false)
+        {
+            return DefaultValue();
+        }
+
+        IPublishedSnapshot publishedSnapshot = _publishedSnapshotAccessor.GetRequiredPublishedSnapshot();
+
+        ApiLinkWithSettings ? ToLink(MultiUrlPickerWithSettingsValueEditor.LinkDto item)
+        {
+            ApiBlockItem? apiBlockItem = null;
+            var contentItem = GetSettingsAsPublishedElement(item);
+            if (contentItem != null)
+            {
+                apiBlockItem = new ApiBlockItem(_apiElementBuilder.Build(contentItem), null);
+            }
+
+            switch (item.Udi?.EntityType)
+            {
+                case Constants.UdiEntityType.Document:
+                    IPublishedContent? content = publishedSnapshot.Content?.GetById(item.Udi.Guid);
+                    IApiContentRoute? route = content != null
+                        ? _apiContentRouteBuilder.Build(content)
+                        : null;
+                    return content == null || route == null
+                        ? null
+                        : ApiLinkWithSettings.Content(
+                            item.Name.IfNullOrWhiteSpace(_apiContentNameProvider.GetName(content)),
+                            item.Target,
+                            content.Key,
+                            content.ContentType.Alias,
+                            route,
+                            apiBlockItem);
+                case Constants.UdiEntityType.Media:
+                    IPublishedContent? media = publishedSnapshot.Media?.GetById(item.Udi.Guid);
+                    return media == null
+                        ? null
+                        : ApiLinkWithSettings.Media(
+                            item.Name.IfNullOrWhiteSpace(_apiContentNameProvider.GetName(media)),
+                            _apiMediaUrlProvider.GetUrl(media),
+                            item.Target,
+                            media.Key,
+                            media.ContentType.Alias,
+                            apiBlockItem);
+                default:
+                    return ApiLinkWithSettings.External(item.Name, $"{item.Url}{item.QueryString}", item.Target, apiBlockItem);
+            }
+        }
+
+        return dtos.Select(ToLink).WhereNotNull().ToArray();
+    }
+
+    private static bool IsSingleUrlPicker(IPublishedPropertyType propertyType)
+        => propertyType.DataType.ConfigurationAs<MultiUrlPickerWithSettingsConfiguration>()!.MaxNumber == 1;
+
+    private IEnumerable<MultiUrlPickerWithSettingsValueEditor.LinkDto>? ParseLinkDtos(string inter)
+        => inter.DetectIsJson() ? _jsonSerializer.Deserialize<IEnumerable<MultiUrlPickerWithSettingsValueEditor.LinkDto>>(inter) : null;
 }
 
 public class LinkWithSettings : Link
