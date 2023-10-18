@@ -179,11 +179,11 @@ public class MultiUrlPickerWithSettingsValueConverter : PropertyValueConverterBa
 
         ApiLinkWithSettings ? ToLink(MultiUrlPickerWithSettingsValueEditor.LinkDto item)
         {
-            ApiBlockItem? apiBlockItem = null;
+            IApiElement? settings = null;
             var contentItem = GetSettingsAsPublishedElement(item);
             if (contentItem != null)
             {
-                apiBlockItem = new ApiBlockItem(_apiElementBuilder.Build(contentItem), null);
+                settings = _apiElementBuilder.Build(contentItem);
             }
 
             switch (item.Udi?.EntityType)
@@ -201,7 +201,7 @@ public class MultiUrlPickerWithSettingsValueConverter : PropertyValueConverterBa
                             content.Key,
                             content.ContentType.Alias,
                             route,
-                            apiBlockItem);
+                            settings);
                 case Constants.UdiEntityType.Media:
                     IPublishedContent? media = publishedSnapshot.Media?.GetById(item.Udi.Guid);
                     return media == null
@@ -212,9 +212,9 @@ public class MultiUrlPickerWithSettingsValueConverter : PropertyValueConverterBa
                             item.Target,
                             media.Key,
                             media.ContentType.Alias,
-                            apiBlockItem);
+                            settings);
                 default:
-                    return ApiLinkWithSettings.External(item.Name, $"{item.Url}{item.QueryString}", item.Target, apiBlockItem);
+                    return ApiLinkWithSettings.External(item.Name, $"{item.Url}{item.QueryString}", item.Target, settings);
             }
         }
 

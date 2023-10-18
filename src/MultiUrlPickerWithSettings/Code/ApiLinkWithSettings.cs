@@ -8,16 +8,16 @@ namespace Umbraco.Cms.Core.PropertyEditors.ValueConverters;
 
 public sealed class ApiLinkWithSettings
 {
-    public static ApiLinkWithSettings Content(string title, string? target, Guid destinationId, string destinationType, IApiContentRoute route, ApiBlockItem? setttings)
-        => new(LinkType.Content, null, title, target, destinationId, destinationType, route, setttings);
+    public static ApiLinkWithSettings Content(string title, string? target, Guid destinationId, string destinationType, IApiContentRoute route, IApiElement? settings)
+        => new(LinkType.Content, null, title, target, destinationId, destinationType, route, settings);
 
-    public static ApiLinkWithSettings Media(string title, string url, string? target, Guid destinationId, string destinationType, ApiBlockItem? setttings)
-        => new(LinkType.Media, url, title, target, destinationId, destinationType, null, setttings);
+    public static ApiLinkWithSettings Media(string title, string url, string? target, Guid destinationId, string destinationType, IApiElement? settings)
+        => new(LinkType.Media, url, title, target, destinationId, destinationType, null, settings);
 
-    public static ApiLinkWithSettings External(string? title, string url, string? target, ApiBlockItem? setttings)
-        => new(LinkType.External, url, title, target, null, null, null, setttings);
+    public static ApiLinkWithSettings External(string? title, string url, string? target, IApiElement? settings)
+        => new(LinkType.External, url, title, target, null, null, null, settings);
 
-    private ApiLinkWithSettings(LinkType linkType, string? url, string? title, string? target, Guid? destinationId, string? destinationType, IApiContentRoute? route, ApiBlockItem? setttings)
+    private ApiLinkWithSettings(LinkType linkType, string? url, string? title, string? target, Guid? destinationId, string? destinationType, IApiContentRoute? route, IApiElement? settings)
     {
         LinkType = linkType;
         Url = url;
@@ -26,7 +26,7 @@ public sealed class ApiLinkWithSettings
         DestinationId = destinationId;
         DestinationType = destinationType;
         Route = route;
-        Setttings = setttings;
+        Settings = settings;
     }
 
     public string? Url { get; }
@@ -43,5 +43,5 @@ public sealed class ApiLinkWithSettings
 
     public LinkType LinkType { get; }
 
-    public ApiBlockItem? Setttings { get; }
+    public IApiElement? Settings { get; }
 }
